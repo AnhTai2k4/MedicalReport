@@ -1,27 +1,42 @@
 const FormModel = require("../models/FormModel.js");
+const xlsx = require("xlsx");
 
 const createForm = async ({
   reportType,
   reportNumber,
   reportDate,
   reportUnit,
+
   patientName,
   patientNumber,
   patientDateOfBirth,
   patientGender,
+  patientDepartment,
+
   incidentLocation,
   incidentDate,
-  incidentDescription,
-  treatmentDescription,
-  notifyDoctor,
-  notifyFamily,
+
+  incidentObject, // 👈 bây giờ là tham số, không gán ""
   incidentHappened,
-  incidentEffect,
-  incidentObject,
   incidentTime,
-  specificLocation,
   patientMedicalRecord,
   notifyPatient,
+
+  incidentDescription,
+  treatmentDescription,
+  initialTreatment,
+  notifyDoctor,
+  notifyFamily,
+  incidentClassification,
+  incidentEffect,
+
+  reportName,
+  reportCall,
+  reportEmail,
+  reportObject,
+
+  viewer1,
+  viewer2,
 }) => {
   try {
     const newForm = await FormModel.create({
@@ -29,23 +44,37 @@ const createForm = async ({
       reportNumber,
       reportDate,
       reportUnit,
+
       patientName,
       patientNumber,
       patientDateOfBirth,
       patientGender,
+      patientDepartment,
+
       incidentLocation,
       incidentDate,
-      incidentDescription,
-      treatmentDescription,
-      notifyDoctor,
-      notifyFamily,
+
+      incidentObject, // 👈 bây giờ là tham số, không gán ""
       incidentHappened,
-      incidentEffect,
-      incidentObject,
       incidentTime,
-      specificLocation,
       patientMedicalRecord,
       notifyPatient,
+
+      incidentDescription,
+      treatmentDescription,
+      initialTreatment,
+      notifyDoctor,
+      notifyFamily,
+      incidentClassification,
+      incidentEffect,
+
+      reportName,
+      reportCall,
+      reportEmail,
+      reportObject,
+
+      viewer1,
+      viewer2,
     });
 
     console.log(newForm);
@@ -141,7 +170,7 @@ const getIncidentDateCounts = async () => {
 const getLocationCounts = async () => {
   try {
     const pipeline = [
-      { $group: { _id: "$specificLocation", cnt: { $sum: 1 } } },
+      { $group: { _id: "$incidentHappened", cnt: { $sum: 1 } } },
       { $project: { _id: 0, value: "$_id", cnt: 1 } },
       { $sort: { value: 1 } },
     ];
@@ -160,4 +189,28 @@ const getLocationCounts = async () => {
   }
 };
 
-module.exports = { createForm, getIncidentObjectCounts, getIncidentDateCounts,getLocationCounts };
+const getExcel = async (req, res) => {
+  //Lấy đường dẫn file excel
+  const excelPath = "D:\\Intern\\Medical_Report\\BE\\public\\DS_KHoaPHòng.xlsx";
+  console.log("excelPath", excelPath);
+
+  // đọc file excel
+  const workbook = xlsx.readFile(excelPath);
+  console.log("workbook", workbook);
+  const sheetName = workbook.SheetNames[0]; // lấy sheet đầu tiên
+  const sheet = workbook.Sheets[sheetName];
+  const results = xlsx.utils.sheet_to_json(sheet, { header: 1 }); // chuyển sang JSON
+
+  return {
+    success: true,
+    data: results,
+  };
+};
+
+module.exports = {
+  createForm,
+  getIncidentObjectCounts,
+  getIncidentDateCounts,
+  getLocationCounts,
+  getExcel,
+};

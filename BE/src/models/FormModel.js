@@ -11,6 +11,7 @@ const formSchema = mongoose.Schema(
     patientNumber: { type: String }, // Số bệnh án
     patientDateOfBirth: { type: Date }, // Ngày sinh
     patientGender: { type: String }, // Giới tính
+    patientDepartment: { type: String }, // Khoa người bệnh
 
     incidentLocation: { type: String }, // Nơi xảy ra sự cố
     incidentDate: { type: Date }, // Ngày xảy ra sự cố
@@ -28,6 +29,13 @@ const formSchema = mongoose.Schema(
     notifyFamily: { type: String }, // Thông báo cho bác sĩ
     incidentClassification: { type: String }, // Phân loại sự cố
     incidentEffect: { type: String }, // Đánh giá ban đầu về mức độ ảnh hưởng của sự cố
+
+    reportName: { type: String }, // Thông tin người báo cáo
+    reportCall: { type: String }, // Số điện thoại người báo cáo
+    reportEmail: { type: String }, // Email người báo cáo
+    reportObject: { type: String }, // Đối tượng báo cáo
+    viewer1: { type: String }, // Người chứng kiến 1
+    viewer2: { type: String }, // Người chứng kiến 2
   },
   {
     timestamps: true,
@@ -35,4 +43,5 @@ const formSchema = mongoose.Schema(
 );
 
 const Form = mongoose.model("Form", formSchema);
+
 module.exports = Form;

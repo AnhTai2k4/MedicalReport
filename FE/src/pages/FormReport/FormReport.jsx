@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./FormReport.css";
 import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 const FormReport = () => {
   const [formData, setFormData] = useState({
     reportType: "", // Hinh thuc bao cao su co
@@ -12,11 +13,12 @@ const FormReport = () => {
     patientNumber: "", //Số bệnh án
     patientDateOfBirth: "", // Ngày sinh
     patientGender: "", // Giới tính
+    patientDepartment: "", // Khoa người bệnh
 
     incidentLocation: "", //Nơi xảy ra sự cố
     incidentDate: "", // Ngày xảy ra sự cố
 
-    incidentObject: "", // Đối tượng xảy ra sự cố
+    incidentObject: [], // Đối tượng xảy ra sự cố
     incidentHappened: "", // Vị trí cụ thể
     incidentTime: "", //Thời gian
     patientMedicalRecord: "", //Ghi nhận vào hồ sơ bệnh án
@@ -29,16 +31,64 @@ const FormReport = () => {
     notifyFamily: "", //Thông báo cho bác sĩ
     incidentClassification: "", // Phân loại sự cố
     incidentEffect: "", //Đánh giá ban đầu về mức độ ảnh hưởng của sự cố
+
+    reportName: "", //Thông tin người báo cáo
+    reportCall: "", // Số điện thoại người báo cáo
+    reportEmail: "", // Email người báo cáo
+    reportObject: "", //Đối tượng báo cáo
+
+    viewer1: "", //Người chứng kiến 1
+    viewer2: "", //Người chứng kiến 2
   });
+
+  const [excelData, setExcelData] = useState([]);
+
+  useEffect(() => {
+    const fetchExcel = async () => {
+      try {
+        const res = await axios.get("http://localhost:3001/form/getExcel");
+        console.log("Lấy dữ liệu thành công: ");
+        setExcelData(res.data.data);
+      } catch (e) {
+        console.log("Lấy dữ liệu từ file Excel lỗi: ", e);
+      }
+    };
+
+    fetchExcel();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    // Nếu là checkbox nhiều lựa chọn
+    if (name === "incidentObject") {
+      const prev = Array.isArray(formData.incidentObject)
+        ? formData.incidentObject
+        : [];
+
+      let updated;
+      if (checked) {
+        // Nếu được tick thì thêm vào mảng
+        updated = [...prev, value];
+      } else {
+        // Nếu bỏ tick thì loại khỏi mảng
+        updated = prev.filter((item) => item !== value);
+      }
+
+      setFormData({
+        ...formData,
+        incidentObject: updated,
+      });
+      console.log("incidentObject:", updated);
+    } else {
+      // Xử lý input bình thường
+      setFormData({
+        ...formData,
+        [name]: type === "checkbox" ? checked : value,
+      });
+    }
   };
+
   useEffect(() => {
     console.log(formData.incidentObject);
   }, [formData.incidentObject]);
@@ -151,6 +201,7 @@ const FormReport = () => {
           </div>
         </div>
 
+        {/* Patient Information*/}
         <div className="form-content">
           <div className="form-column left-column">
             <div className="form-section">
@@ -190,6 +241,26 @@ const FormReport = () => {
                   defaultValue={formData.patientGender}
                   onChange={handleInputChange}
                 />
+              </div>
+
+              <p style={{ color: "#34495e", fontSize: "14px" }}>
+                Khoa của người bệnh
+              </p>
+
+              <div className="checkbox-group checkbox-group-excel">
+                {excelData.map((data) =>
+                  data.length == 2 ? (
+                    <label>
+                      <input
+                        type="radio"
+                        name="patientDepartment"
+                        defaultValue=""
+                        onChange={handleInputChange}
+                      />
+                      {data[1]}
+                    </label>
+                  ) : null
+                )}
               </div>
             </div>
 
@@ -358,7 +429,7 @@ const FormReport = () => {
             </div>
           </div>
         </div>
-
+        {/* Incident description*/}
         <div className="form-section">
           <h3>Mô tả ngắn gọn về sự cố</h3>
           <textarea
@@ -391,7 +462,7 @@ const FormReport = () => {
           />
         </div>
 
-        {/* Notifications */}
+        {/* Doctor Notifications */}
         <div className="form-section">
           <h3>Thông báo cho Bác sĩ điều trị/người có trách nhiệm</h3>
           <div className="checkbox-group">
@@ -424,6 +495,7 @@ const FormReport = () => {
           </div>
         </div>
 
+        {/* Family Notifications */}
         <div className="form-section">
           <h3>Thông báo cho người nhà/người bảo hộ</h3>
           <div className="checkbox-group">
@@ -481,7 +553,7 @@ const FormReport = () => {
             </label>
           </div>
         </div>
-
+        {/* incident effect*/}
         <div className="form-section">
           <h3>Đánh giá ban đầu về mức độ ảnh hưởng của sự cố</h3>
           <div className="checkbox-group">
@@ -503,6 +575,138 @@ const FormReport = () => {
               />
               Trung bình
             </label>
+            <label>
+              <input
+                type="radio"
+                name="incidentEffect"
+                defaultValue="Trung bình"
+                onChange={handleInputChange}
+              />
+              Nhẹ
+            </label>
+          </div>
+        </div>
+
+        {/* Reporter Information*/}
+        <div className="form-section">
+          <h3>Thông tin người báo cáo</h3>
+
+          <div className="input-group">
+            <label>Họ tên: </label>
+            <input
+              style={{ width: "50%" }}
+              type="text"
+              name="reportName"
+              value={formData.reportName}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="input-group">
+            <label>Số điện thoại: </label>
+            <input
+              style={{ width: "50%" }}
+              type="text"
+              name="reportCall"
+              defaultValue=""
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="input-group">
+            <label>Email: </label>
+            <input
+              style={{ width: "50%" }}
+              type="text"
+              name="reportEmail"
+              defaultValue={formData.reportEmail}
+              onChange={handleInputChange}
+            />
+          </div>
+          <br />
+
+          <div className="checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                name="reportObject"
+                defaultValue="Người bệnh"
+                onChange={handleInputChange}
+              />
+              Người bệnh
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="reportObject"
+                defaultValue="Điều dưỡng(chức danh)"
+                onChange={handleInputChange}
+              />
+              Người nhà/khách đến thăm
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="reportObject"
+                defaultValue="Người bệnh"
+                onChange={handleInputChange}
+              />
+              Nhân viên y tế
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="reportObject"
+                defaultValue="Người nhà/khách đến thăm"
+                onChange={handleInputChange}
+              />
+              Trang thiết bị/cơ sở hạ tầng
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="reportObject"
+                defaultValue="Bác sĩ (chức danh)"
+                onChange={handleInputChange}
+              />
+              Trang thiết bị/cơ sở hạ tầng
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="reportObject"
+                defaultValue="Khác"
+                onChange={handleInputChange}
+              />
+              Trang thiết bị/cơ sở hạ tầng
+            </label>
+          </div>
+        </div>
+
+        {/* Viewer Information*/}
+        <div className="form-section header-section">
+          <div className="header-left">
+            <div className="input-group">
+              <label>Người chứng kiến 1: </label>
+              <input
+                type="text"
+                name="viewer1"
+                defaultValue={formData.viewer1}
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+
+          <div className="header-right">
+            <div className="input-group">
+              <label>Người chứng kiến 2: </label>
+              <input
+                type="text"
+                name="viewer2"
+                defaultValue={formData.viewer2}
+                onChange={handleInputChange}
+              />
+            </div>
           </div>
         </div>
 

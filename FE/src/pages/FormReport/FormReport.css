@@ -157,7 +157,18 @@ textarea:focus {
     flex-wrap: wrap;
     gap: 15px;
     margin-top: 10px;
+    
 }
+
+.checkbox-group-excel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 cột đều nhau */
+  gap: 10px 20px; /* khoảng cách hàng (10px) và cột (20px) */
+  margin-top: 10px;
+}
+
+
+
 
 .checkbox-group label {
     display: flex;
